@@ -68,6 +68,10 @@ def create_product():
         image = form.image.data # get uploaded image
         if allowed_file(image.filename):
             filename = secure_filename(image.filename)
+            filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+            if os.path.exists(filepath):
+                flash('Product image already exists. Try changing the image name.', 'warning') # if image name already exists, redirect user back to the product create page
+                return render_template('product create.html', form=form)
             image.save(os.path.join(app.config['UPLOAD_FOLDER'], filename)) # store image into /static/images
         product = Product(name, price, category, filename) # stage the changes
         db.session.add(product) # add staged changes into current session
@@ -95,6 +99,23 @@ def create_category():
     if form.errors:
         flash(form.errors) # flash error if there is a problem
 
-    return render_template('category create.html', form=form) # show the form
+    return render_template('category create.html', form=form)
+
+@app.route('/product/<int:id>/delete', methods=['POST'])
+def delete_product(id):
+    product = Product.query.get_or_404(id) # show product or send back a 404 error
+    
+    # delete the image file if it exists
+    if product.image_path:
+        image_path = os.path.join(app.config['UPLOAD_FOLDER'], product.image_path)
+        if os.path.exists(image_path):
+            os.remove(image_path)
+    
+    # delete the product from database
+    db.session.delete(product)
+    db.session.commit()
+    
+    flash(f'Product {product.name} has been deleted.', 'success')
+    return redirect(url_for('products'))
 
 

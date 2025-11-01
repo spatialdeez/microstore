@@ -1,16 +1,35 @@
 {% extends 'base.html' %}
 
 {% block content %}
-    <h2>Product Details</h2>
-    {% for id, product in products_show.items() %}
-    <div class="top-pad">
-        <p><strong>Name:</strong> {{ product['name'] }}</p>
-        <p><strong>Price:</strong> ${{ product['price'] }}</p>
-        <p><strong>Category:</strong> {{ product['category'] }}</p>
-        {% if product['image_path'] %}
-            <p><strong>Image:</strong></p>
-            <img src="{{ url_for('static', filename='images/' + product['image_path']) }}" alt="{{ product['name'] }}" class="img-fluid" style="max-width: 300px;">
-        {% endif %}
+    <h2 class="mb-4">Product Details</h2>
+    <div class="row row-cols-1 row-cols-md-3 g-4">
+        {% for id, product in products_show.items() %}
+        <div class="col">
+            <div class="card h-100">
+                {% if product['image_path'] %}
+                    <img src="{{ url_for('static', filename='images/' + product['image_path']) }}" 
+                         class="card-img-top" 
+                         alt="{{ product['name'] }}"
+                         style="height: 200px; object-fit: contain; padding: 1rem;">
+                {% else %}
+                    <div class="card-img-top bg-light d-flex align-items-center justify-content-center" 
+                         style="height: 200px;">
+                        <span class="text-muted">No product image</span>
+                    </div>
+                {% endif %}
+                <div class="card-body">
+                    <h5 class="card-title">{{ product['name'] }}</h5>
+                    <p class="card-text">
+                        <strong>Price:</strong> ${{ product['price'] }}<br>
+                        <strong>Category:</strong> {{ product['category'] }}
+                    </p>
+                    <form action="{{ url_for('delete_product', id=id) }}" method="POST" 
+                          onsubmit="return confirm('Are you sure you want to delete this product?');">
+                        <button type="submit" class="btn btn-danger">Delete</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
     </div>
-    {% endfor %}
 {% endblock %}
