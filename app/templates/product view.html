@@ -1,0 +1,16 @@
+{% extends 'base.html' %}
+
+{% block content %}
+    <h2>Product Details</h2>
+    {% for id, product in products_show.items() %}
+    <div class="top-pad">
+        <p><strong>Name:</strong> {{ product['name'] }}</p>
+        <p><strong>Price:</strong> ${{ product['price'] }}</p>
+        <p><strong>Category:</strong> {{ product['category'] }}</p>
+        {% if product['image_path'] %}
+            <p><strong>Image:</strong></p>
+            <img src="{{ url_for('static', filename='images/' + product['image_path']) }}" alt="{{ product['name'] }}" class="img-fluid" style="max-width: 300px;">
+        {% endif %}
+    </div>
+    {% endfor %}
+{% endblock %}
