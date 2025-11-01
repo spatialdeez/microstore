@@ -1,7 +1,7 @@
 import os
-from flask import render_template, request, jsonify, flash, redirect, url_for
+from flask import render_template, request, jsonify, flash, redirect, url_for, session
 from app import app, db, ALLOWED_EXTENSIONS
-from app.models import Product, Category, ProductForm, CategoryForm # import the database model
+from app.models import Product, Category, ProductForm, CategoryForm, LoginForm, RegistrationForm, User # import the database model
 from werkzeug.utils import secure_filename
 
 # frontpage index
@@ -101,6 +101,7 @@ def create_category():
 
     return render_template('category create.html', form=form)
 
+# delete product by id
 @app.route('/product/<int:id>/delete', methods=['POST'])
 def delete_product(id):
     product = Product.query.get_or_404(id) # show product or send back a 404 error
@@ -118,4 +119,59 @@ def delete_product(id):
     flash(f'Product {product.name} has been deleted.', 'success')
     return redirect(url_for('products'))
 
+@app.route('/register', methods=['GET', 'POST'])
+def register():
+    if session.get('username'):
+        flash('You are already logged in', 'info')
+        return redirect(url_for('index'))
+    
+    form = RegistrationForm()
+
+    if form.validate_on_submit():
+        username = request.form.get('username')
+        password = request.form.get('password')
+        existing_username = User.query.filter(User.username.like('%' + username + '%')).first()
+        if existing_username:
+            flash('Username already taken. Try another one.', 'warning')
+            return render_template('register.html')
+        
+        user = User(username, password) # stage changes
+        db.session.add(user) # add staged changes into session
+        db.session.commit() # commit session changes
+        flash('Thank you for signing up as a user! Please try and log in now.', 'success')
+        return redirect(url_for('login'))
+    
+    if form.errors:
+        flash(form.errors)
+
+    return render_template('register.html', form=form)
+
+@app.route('/login', methods=['GET', 'POST'])
+def login():
+    form = LoginForm()
+
+    if form.validate_on_submit():
+        username = request.form.get('username')
+        password = request.form.get('password')
+        existing_user = User.query.filter_by(username=username).first()
+        if not (existing_user and existing_user.check_password(password)):
+            flash('Invalid username or password. Please try again', 'danger')
+            return render_template('login.html', form=form)
+        
+        session['username'] = username
+        flash(f'You have successfully logged in as {username}!', 'success')
+        return redirect(url_for('index'))
+    
+    if form.errors:
+        flash(form.errors)
+
+    return render_template('login.html', form=form)
+
+@app.route('/logout')
+def logout():
+    if 'username' in session:
+        session.pop('username')
+        flash('You have logged out.', 'success')
+    
+    return redirect(url_for('index'))
 

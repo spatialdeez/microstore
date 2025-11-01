@@ -3,5 +3,9 @@
 {% block content %}
     <h1>Welcome to microstore homepage</h1>
     <p>This is the homepage of the microstore application.</p>
-    <img src="{{ url_for('static', filename='images/iphone 15.jpg') }}" style="max-width: 300px; height: auto;">
+    {% if session.username %}
+        <p>Hello, {{ session.username }}! Welcome back!</p>
+    {% else %}
+        <p>Please <a href="{{ url_for('login') }}">log in</a> or <a href="{{ url_for('register') }}">register</a>.</p>
+    {% endif %}
 {% endblock %}
