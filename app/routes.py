@@ -28,6 +28,8 @@ def get_current_user():
 # frontpage index
 @app.route('/')
 def index():
+    if current_user.is_authenticated:
+        return redirect(url_for('homepage'))
     return render_template('index.html', page_name='Frontpage')
 
 # user homepage

@@ -1,6 +1,9 @@
 {% extends "base.html" %}
 
 {% block content %}
-    <h1>Welcome to microstore frontpage</h1>
-    <p>Explore products</p>
+    <div class="container text-center">
+        <h1>Welcome to microstore frontpage</h1>
+        <hr class="border border-dark border-3 opacity-75 my-4" style="border-radius: 5px;">
+        <h3>To start exploring products, it is recommended you <a href="{{ url_for('register')}}">create an account</a> or <a href="{{ url_for('login')}}">sign in</a></h3>
+    </div>
 {% endblock %}
