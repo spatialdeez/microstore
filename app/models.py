@@ -1,5 +1,5 @@
 from app import db
-from wtforms import StringField, DecimalField, SelectField, FileField, ValidationError, PasswordField
+from wtforms import StringField, DecimalField, SelectField, FileField, ValidationError, PasswordField, BooleanField
 from wtforms.validators import NumberRange, EqualTo, InputRequired
 from flask_wtf.file import FileRequired
 from flask_wtf import FlaskForm
@@ -40,6 +40,14 @@ class LoginForm(FlaskForm):
     username = StringField('Username', validators=[InputRequired()]) # requires input
     password = PasswordField('Password', validators=[InputRequired()]) # requires input
 
+class AdminUserCreateForm(FlaskForm):
+    username = StringField('Username', validators=[InputRequired()])
+    password = PasswordField('Password', validators=[InputRequired()])
+    admin = BooleanField('Make user admin?')
+
+class AdminUserUpdateform(FlaskForm):
+    username = StringField('Username', validators=[InputRequired()])
+    admin = BooleanField('Make user admin?')
 
 # databases
 class Product(db.Model):
@@ -75,10 +83,27 @@ class User(db.Model):
     id = db.Column(db.Integer, primary_key=True)  # make id the primary key
     username = db.Column(db.String(100)) # max 100 characters
     password_hash = db.Column(db.String()) # string only
+    admin = db.Column(db.Boolean()) # Boolean only (True and false)
 
-    def __init__(self, username, password):
+    @property
+    def is_authenticated(self):
+        return True
+    @property
+    def is_active(self):
+        return True
+    @property
+    def is_anonymous(self):
+        return False
+    def get_id(self):
+        return str(self.id)
+    
+    def __init__(self, username, password, admin):
         self.username = username
         self.password_hash = generate_password_hash(password)
+        self.admin = admin
+
+    def is_admin(self):
+        return self.admin
 
     def check_password(self, password):
         return check_password_hash(self.password_hash, password) # check if password match

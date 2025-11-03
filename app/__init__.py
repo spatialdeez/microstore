@@ -2,6 +2,7 @@ import os
 from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
+from flask_login import LoginManager
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -14,6 +15,11 @@ migrate = Migrate(app, db) # initalise migrate
 
 ALLOWED_EXTENSIONS = set(['txt', 'pdf', 'png', 'jpg', 'jpeg', 'gif']) # allow what extentions to be uploaded
 app.config['UPLOAD_FOLDER'] = os.path.realpath('.') + '/app/static/images' # tell flask where to put images
+
+# Flask-Login initialisation
+login_manager = LoginManager()
+login_manager.init_app(app)
+login_manager.login_view = 'login'
 
 from app import routes # get routes or endpoints
 
