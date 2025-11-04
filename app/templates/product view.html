@@ -2,6 +2,7 @@
 
 {% block content %}
     <h2 class="mb-4">Product Details</h2>
+    <hr class="border border-dark border-3 opacity-75 my-4" style="border-radius: 5px;">
     <div class="row row-cols-1 row-cols-md-3 g-4">
         {% for id, product in products_show.items() %}
         <div class="col">
@@ -34,4 +35,38 @@
         </div>
         {% endfor %}
     </div>
+
+    {% if pagination %}
+    <nav aria-label="Product pagination" class="mt-5">
+        <ul class="pagination justify-content-center">
+            <li class="page-item {% if not pagination.has_prev %}disabled{% endif %}">
+                <a class="page-link" href="{% if pagination.has_prev %}{{ url_for('products', page=pagination.prev_num) }}{% else %}#{% endif %}" aria-label="Previous">
+                    <span aria-hidden="true">&laquo;</span>
+                </a>
+            </li>
+
+            {% for page_num in pagination.iter_pages(left_edge=1, right_edge=1, left_current=2, right_current=2) %}
+                {% if page_num %}
+                    <li class="page-item {% if page_num == pagination.page %}active{% endif %}">
+                        <a class="page-link" href="{{ url_for('products', page=page_num) }}">{{ page_num }}</a>
+                    </li>
+                {% else %}
+                    <li class="page-item disabled">
+                        <span class="page-link">...</span>
+                    </li>
+                {% endif %}
+            {% endfor %}
+
+            <li class="page-item {% if not pagination.has_next %}disabled{% endif %}">
+                <a class="page-link" href="{% if pagination.has_next %}{{ url_for('products', page=pagination.next_num) }}{% else %}#{% endif %}" aria-label="Next">
+                    <span aria-hidden="true">&raquo;</span>
+                </a>
+            </li>
+        </ul>
+        
+        <p class="text-center text-muted">
+            Showing {{ per_page }} out of {{ pagination.total }} product(s) - Page {{ pagination.page }} of {{ pagination.pages }}
+        </p>
+    </nav>
+    {% endif %}
 {% endblock %}

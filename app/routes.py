@@ -49,8 +49,11 @@ def homepage():
 
 # show all products
 @app.route('/products')
-def products():
-    products = Product.query.all()
+@app.route('/products/<int:page>')
+def products(page=1):
+    per_page = 3
+    pagination = Product.query.paginate(page=page, per_page=per_page, error_out=False)
+    products = pagination.items
     products_show = {}
     for product in products:
         products_show[product.id] =  {
@@ -59,7 +62,7 @@ def products():
             'category': product.category.name, # category name
             'image_path': product.image_path
         }
-    return render_template('product view.html', page_name='Products', products_show=products_show)
+    return render_template('product view.html', page_name='Products', products_show=products_show, per_page=per_page, pagination=pagination)
     # return jsonify(products_show) # give all product lists
 
 # show specific product details
@@ -76,21 +79,20 @@ def product(id):
     return render_template('product view.html', page_name=f'{product.name}' ,products_show=products_show)
 
 # show all categories
-@app.route('/categories')
-def categories():
+@app.route('/admin/categories')
+@login_required
+@admin_login_required
+def categories_list_admin():
     categories = Category.query.all()
-    category_show = {}
+    category_data = []
     for category in categories:
-        category_show[category.id] = {
+        product_count = category.products.count()
+        category_data.append({
+            'id': category.id,
             'name': category.name,
-            }
-        for product in category.products:
-            category_show[category.id]['products'] = {
-                'id': product.id,
-                'name': product.name,
-                'price': str(product.price),
-            }
-    return jsonify(category_show)
+            'product_count': product_count
+        })
+    return render_template('category edit.html', categories=category_data)
 
 # show specific category details
 @app.route('/product-create', methods=['GET', 'POST'])
@@ -164,6 +166,26 @@ def delete_product(id):
     
     flash(f'Product {product.name} has been deleted.', 'success')
     return redirect(url_for('products'))
+
+# delete category by id
+@app.route('/category/<int:id>/delete', methods=['POST'])
+@login_required
+@admin_login_required
+def delete_category(id):
+    category = Category.query.get_or_404(id)
+    
+    # Check if category has products
+    product_count = category.products.count()
+    if product_count > 0:
+        flash(f'Cannot delete category "{category.name}" because it has {product_count} product(s) associated with it. Please reassign or delete the products first.', 'danger')
+        return redirect(url_for('categories_list_admin'))
+    
+    category_name = category.name
+    db.session.delete(category) # delete category
+    db.session.commit() # commit changes
+    
+    flash(f'Category {category_name} has been deleted successfully.', 'success')
+    return redirect(url_for('categories_list_admin'))
 
 # register new users
 @app.route('/register', methods=['GET', 'POST'])
