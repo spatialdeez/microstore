@@ -1,9 +1,10 @@
 import os
 from functools import wraps
-from flask import abort, render_template, jsonify, flash, redirect, url_for, session, g, request
+from flask import abort, render_template, flash, redirect, url_for, g, request
 from flask_login import current_user, login_user, logout_user, login_required
+from sqlalchemy.sql.expression import func
 from app import app, db, login_manager, ALLOWED_EXTENSIONS
-from app.models import Product, Category, User, ProductForm, CategoryForm, LoginForm, RegistrationForm, AdminUserCreateForm, AdminUserUpdateform # import the database model and forms
+from app.models import Product, Category, User, Cart, CartItem, ProductForm, CategoryForm, LoginForm, RegistrationForm, AdminUserCreateForm, AdminUserUpdateform # import the database model and forms
 from werkzeug.utils import secure_filename
 
 # custom decorators
@@ -36,14 +37,14 @@ def index():
 @app.route('/homepage')
 @login_required
 def homepage():
-    products = Product.query.all()
+    products = Product.query.order_by(func.random()).limit(9).all()
     products_show = {}
     for product in products:
         products_show[product.id] =  {
-            'name': product.name,
-            'price': str(product.price), 
+            'name': product.name, # product name
+            'price': str(product.price), # product price
             'category': product.category.name, # category name
-            'image_path': product.image_path
+            'image_path': product.image_path # string of image name
         }
     return render_template('homepage.html', page_name='Homepage', products_show=products_show)
 
@@ -52,15 +53,16 @@ def homepage():
 @app.route('/products/<int:page>')
 def products(page=1):
     per_page = 3
+    product_query = Product.query.order_by(Product.category_id, Product.price).all()
     pagination = Product.query.paginate(page=page, per_page=per_page, error_out=False)
     products = pagination.items
     products_show = {}
     for product in products:
         products_show[product.id] =  {
-            'name': product.name,
-            'price': str(product.price), 
+            'name': product.name, # product name
+            'price': str(product.price), # product price
             'category': product.category.name, # category name
-            'image_path': product.image_path
+            'image_path': product.image_path # string of image name
         }
     return render_template('product view.html', page_name='Products', products_show=products_show, per_page=per_page, pagination=pagination)
     # return jsonify(products_show) # give all product lists
@@ -187,6 +189,34 @@ def delete_category(id):
     flash(f'Category {category_name} has been deleted successfully.', 'success')
     return redirect(url_for('categories_list_admin'))
 
+@app.route('/cart')
+@login_required
+def view_cart():
+    cart = Cart.query.filter_by(user_id=current_user.id).first()
+    # create a new cart if it is a new user
+    if not cart:
+        cart = Cart(user_id=current_user.id)
+        db.session.add(cart)
+    cart_items = cart.get_items()
+    return render_template('cart view.html', cart_items=cart_items)
+
+@app.route('/cart/purchase/<int:id>', methods=['POST'])
+@login_required
+def purchase(id):
+    product = Product.query.get_or_404(id) # obtain the product
+    cart = Cart.query.filter_by(user_id=current_user.id).first()
+    # create a cart if it is a new user
+    if not cart:
+        cart = Cart(user_id=current_user.id)
+        db.session.add(cart)
+        db.session.commit()
+        
+    cart.add_item(product, quantity=1)
+    db.session.commit()
+    flash(f'Successfully added {product.name} into cart.', 'success')
+    return redirect(url_for('view_cart'))
+
+
 # register new users
 @app.route('/register', methods=['GET', 'POST'])
 def register():
@@ -252,7 +282,9 @@ def logout():
     logout_user()    
     return redirect(url_for('index'))
 
-# admin panel
+
+
+# ----- ADMIN PANEL SECTION -----
 @app.route('/admin')
 @login_required
 @admin_login_required
@@ -324,9 +356,10 @@ def user_delete_admin(id):
     flash('User deleted.', 'info')
     return redirect(url_for('users_list_admin'))
 
-
 '''
-Create admin
+Create admin with flask shell
 user = User(username='Admin', password='testpassword', admin=True)
 db.session.add(user); db.session.commit()
 '''
+# ----- END OF ADMIN PANEL ROUTING -----
+
