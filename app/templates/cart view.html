@@ -19,6 +19,11 @@
             <td>{{ items.product.name }}</td>
             <td>{{ items.quantity }}</td>
             <td>${{ "%.2f" | format(items.product.price * items.quantity) }}</td>
+            <td>
+              <form action="{{ url_for('delete_cart_item', id=items.product.id) }}" method="POST" 
+                    onsubmit="return confirm('Are you sure you want to remove this item from your cart?');">
+                <button type="submit" class="btn btn-danger btn-sm">Remove from Cart</button>
+              </form>
         {% endfor %}
       </tbody>
     </table>

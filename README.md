@@ -34,6 +34,7 @@ flask db migrate -m 'First initialization of database'
 flask db commit
 ```
 
+Also do remember to create images in microstore/static/app so that you have a place to put your images for the products
 After creating your database, you can finally run the application! 
 
 ```

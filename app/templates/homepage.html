@@ -26,11 +26,14 @@
                         <strong>Price:</strong> ${{ product['price'] }}<br>
                         <strong>Category:</strong> {{ product['category'] }}
                     </p>
-                    {% if current_user.is_authenticated %}
-                        <form action="{{ url_for('purchase', id=id) }}" method="POST">
-                            <button type="submit" class="btn btn-success">Add to cart</button>
-                        </form>
-                    {% endif %}
+                    <div class="d-flex gap-2">
+                        {% if current_user.is_authenticated %}
+                            <form action="{{ url_for('purchase', id=id) }}" method="POST">
+                                <button type="submit" class="btn btn-success">Add to cart</button>
+                            </form>
+                        {% endif %}
+                        <a href="{{ url_for('product', id=id) }}" class="btn btn-primary">View Details</a>
+                    </div>
                     
                     {% if current_user.is_authenticated and current_user.admin %}
                         <hr>

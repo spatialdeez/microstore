@@ -76,9 +76,10 @@ def product(id):
             'name': product.name,
             'price': str(product.price), 
             'category': product.category.name, # category name
+            'description': product.description,
             'image_path': product.image_path
         }
-    return render_template('product view.html', page_name=f'{product.name}' ,products_show=products_show)
+    return render_template('product page.html', page_name=f'{product.name}' ,products_show=products_show)
 
 # show all categories
 @app.route('/admin/categories')
@@ -110,6 +111,7 @@ def create_product():
     if form.validate_on_submit():
         name = form.name.data # get inputted name
         price = form.price.data # get inputted price
+        description = form.description.data # get inputted description
         category = Category.query.get_or_404(form.category.data) # get inputted category
         image = form.image.data # get uploaded image
         if allowed_file(image.filename):
@@ -119,11 +121,11 @@ def create_product():
                 flash('Product image already exists. Try changing the image name.', 'warning') # if image name already exists, redirect user back to the product create page
                 return render_template('product create.html', page_name='Create a product',form=form)
             image.save(os.path.join(app.config['UPLOAD_FOLDER'], filename)) # store image into /static/images
-        product = Product(name, price, category, filename) # stage the changes
+        product = Product(name, price, category, filename, description) # stage the changes
         db.session.add(product) # add staged changes into current session
         db.session.commit() # commit staged changes
         flash(f'Product {name} has successfully been created!', 'success')
-        return redirect(url_for('index')) # return user to frontpage
+        return redirect(url_for('create_product')) # return user to frontpage
     
     if form.errors:
         flash(form.errors, 'danger') # show the error message
@@ -131,7 +133,7 @@ def create_product():
     return render_template('product create.html', page_name='Create a product', form=form)
 
 # create new category
-@app.route('/category-create', methods=['GET','POST',])
+@app.route('/category-create', methods=['GET','POST'])
 @login_required
 @admin_login_required
 def create_category():
@@ -214,6 +216,22 @@ def purchase(id):
     cart.add_item(product, quantity=1)
     db.session.commit()
     flash(f'Successfully added {product.name} into cart.', 'success')
+    return redirect(url_for('view_cart'))
+
+@app.route('/cart/remove/<int:id>', methods=['POST'])
+@login_required
+def delete_cart_item(id):
+    product = Product.query.get_or_404(id) # obtain the product
+    cart = Cart.query.filter_by(user_id=current_user.id).first()
+    # create a cart if it is a new user
+    if not cart:
+        cart = Cart(user_id=current_user.id)
+        db.session.add(cart)
+        db.session.commit()
+        
+    cart.remove_item(product, quantity=1)
+    db.session.commit()
+    flash(f'Successfully removed {product.name} from cart.', 'success')
     return redirect(url_for('view_cart'))
 
 

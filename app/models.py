@@ -29,6 +29,7 @@ class CategoryForm(FlaskForm):
 class ProductForm(NameForm):
     price = DecimalField('Product Price', validators=[InputRequired(), NumberRange(min=Decimal('0.01'))]) # allow numbers minimum of 0.01
     category = SelectField('Category', validators=[InputRequired()], coerce=int) # requires input
+    description = StringField('Description', validators=[InputRequired()]) # requires input
     image = FileField('Product image', validators=[FileRequired()]) # requires image
 
 class RegistrationForm(FlaskForm):
@@ -55,14 +56,16 @@ class Product(db.Model):
     name = db.Column(db.String(255), nullable=False) # max input of 255 characters, must contain something
     price = db.Column(db.Float, nullable=False) # allow decimal numbers, must contain something
     image_path = db.Column(db.String(255), nullable=False) # max input of 255 characters, must contain something
+    description = db.Column(db.String(1000), nullable=False, default='No description available') # max input of 1000 characters, must contain something
     category_id = db.Column(db.Integer, db.ForeignKey('category.id')) # foreign key link to category table
     category = db.relationship('Category', backref=db.backref('products', lazy='dynamic')) # establish relationship with category table
 
-    def __init__(self, name, price, category, image_path):
+    def __init__(self, name, price, category, image_path, description):
         self.name = name
         self.price = price
         self.category = category
         self.image_path = image_path
+        self.description = description
         
 
     def __repr__(self):
@@ -128,12 +131,21 @@ class Cart(db.Model):
             db.session.add(cart_item)
 
     def remove_item(self, product, quantity=1):
-        cart_item = CartItem.query.filter_by(cart_id=self.id, product_id=product.id).first()
-        if cart_item:
-            if (cart_item - quantity) > 1:
-                cart_item.quantity -= quantity
-            else:
-                cart_item.delete()
+        product_id = product.id if hasattr(product, 'id') else product
+        cart_item = CartItem.query.filter_by(cart_id=self.id, product_id=product_id).first()
+        if not cart_item:
+            return None
+
+        # ensure quantity is an int and compute new quantity
+        qty = int(quantity)
+        new_qty = cart_item.quantity - qty
+
+        if new_qty > 0:
+            cart_item.quantity = new_qty
+        else:
+            # remove item when quantity goes to zero or below
+            db.session.delete(cart_item)
+
         return cart_item
     
     def get_items(self):
@@ -160,7 +172,7 @@ class CartItem(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     cart_id = db.Column(db.Integer, db.ForeignKey('cart.id'), nullable=False)
     product_id = db.Column(db.Integer, db.ForeignKey('product.id'), nullable=False)
-    quantity = db.Column(db.Integer, nullable=False)
+    quantity = db.Column(db.Integer, nullable=False, default=1)
 
     product = db.relationship('Product') 
     # create relationship with Product model. Will need to use later to refer to this database for price of items
