@@ -25,6 +25,39 @@ venv\Scripts\activate
 pip install flask Flask-Migrate Flask-SQLAlchemy Flask-WTF
 ```
 
+You will need more than those dependencies so here is the full list
+alembic==1.17.1
+blinker==1.9.0
+certifi==2025.10.5
+charset-normalizer==3.4.4
+click==8.3.0
+colorama==0.4.6
+Flask==3.1.2
+Flask-Login==0.6.3
+Flask-Migrate==4.1.0
+Flask-SQLAlchemy==3.1.1
+Flask-WTF==1.2.2
+greenlet==3.2.4
+idna==3.11
+itsdangerous==2.2.0
+Jinja2==3.1.6
+Mako==1.3.10
+MarkupSafe==3.0.3
+python-dotenv==1.2.1
+requests==2.32.5
+SQLAlchemy==2.0.44
+stripe==13.1.1
+typing_extensions==4.15.0
+urllib3==2.5.0
+Werkzeug==3.1.3
+WTForms==3.2.1
+
+Alternatively you can just copy and paste this code into your venv (must already be activated with venv\Scripts\activate)
+```
+pip install alembic==1.17.1 blinker==1.9.0 certifi==2025.10.5 charset-normalizer==3.4.4 click==8.3.0 colorama==0.4.6 Flask==3.1.2 Flask-Login==0.6.3 Flask-Migrate==4.1.0 Flask-SQLAlchemy==3.1.1 Flask-WTF==1.2.2 greenlet==3.2.4 idna==3.11 itsdangerous==2.2.0 Jinja2==3.1.6 Mako==1.3.10 MarkupSafe==3.0.3 python-dotenv==1.2.1 requests==2.32.5 SQLAlchemy==2.0.44 stripe==13.1.1 typing_extensions==4.15.0 urllib3==2.5.0 Werkzeug==3.1.3 WTForms==3.2.1
+
+```
+
 ### Step 3: initalise database and run program
 Enter this code into your command prompt or terminal
 
