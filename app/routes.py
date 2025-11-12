@@ -4,7 +4,7 @@ from flask import abort, render_template, flash, redirect, url_for, g, request
 from flask_login import current_user, login_user, logout_user, login_required
 from sqlalchemy.sql.expression import func
 from app import app, db, login_manager, ALLOWED_EXTENSIONS
-from app.models import Product, Category, User, Cart, CartItem, ProductForm, CategoryForm, LoginForm, RegistrationForm, AdminUserCreateForm, AdminUserUpdateform # import the database model and forms
+from app.models import Product, Category, User, Cart, ProductForm, CategoryForm, LoginForm, RegistrationForm, AdminUserCreateForm, AdminUserUpdateform # import the database model and forms
 from werkzeug.utils import secure_filename
 
 # custom decorators
